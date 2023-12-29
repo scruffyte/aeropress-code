@@ -1,10 +1,9 @@
-/** GROUP B AEROPRESS TEMPLATE (UPDATE ACCORDINGLY) *****************************
+/** GROUP B AEROPRESS TEMPLATE (UPDATE ACCORDINGLY) ******************/
 
 BY TASMIN WHITTLE, BII TARTAGLIA, IZABELLA MICO & MAX JACOBY - 2023-24
-
 DIS CODE MAKE COFFEE
 
-** C O N F I G U R A T I O N   B I T S ******************************/
+/** C O N F I G U R A T I O N   B I T S ******************************/
 
 #pragma config FOSC = INTIO67, FCMEN = OFF, IESO = OFF                      // CONFIG1H
 #pragma config PWRT = OFF, BOREN = OFF, BORV = 30                           // CONFIG2L
@@ -21,27 +20,29 @@ DIS CODE MAKE COFFEE
 /** I N C L U D E S **************************************************/
 
 #include "p18f45k20.h"
-#include "ADC.h"
-#include <delays.h>
+#include "header_V1-0.h"
+#include "delays.h"
 
 /** D E F I N E S ****************************************************/
 
 #define CLEAR_SCREEN  	0b00000001
-#define FOUR_BIT  		0b00101100
-#define LINES_5X7  		0b00111000
-#define CURSOR_BLINK  	0b00001111
-#define CURSOR_RIGHT  	0b00000110
+#define FOUR_BIT  		  0b00101100
+#define LINES_5X7       0b00111000
+#define CURSOR_BLINK    0b00001111
+#define CURSOR_RIGHT    0b00000110
 
-#define DATA_PORT  LATD
-#define RS_PIN     PORTDbits.RD6
-#define E_PIN      PORTDbits.RD7
+#define DATA_PORT       LATD
+#define RS_PIN          PORTDbits.RD6
+#define E_PIN           PORTDbits.RD7
 
 /** V A R I A B L E S ***********************************************/
 
 #pragma udata                       // declare statically allocated uinitialized variables
+#pragma idata                       // declare statically allocated initialized variables
 
 /** I N T E R R U P T S *********************************************/
 
+// OLD BUT HERE FOR REFERENCE
 //--- high priority interrupt vector ---//
 
 #pragma code InterruptVectorHigh = 0x08
@@ -64,7 +65,7 @@ void InterruptVectorLow (void)
 
 /** F U N C T I O N S ***********************************************/
 
-//--- LCD ---//
+//--- LCD ---//                      // OLD BUT RELIVANT - NEEDS UPDATING WITH NEW GRAPHICS
 
 void Delay5milli(void)					    //Suitable delay for LCD
 {
@@ -142,7 +143,7 @@ void WriteString(const rom char *buffer)
 
 //--- ADC ---//
 
-void ADC_Init(void)
+void ADC_Init(void)                          // OLD BUT RELIVANT
 { 	
     ANSELbits.ANS0 = 1;	    // set RA0 to analog
     ADCON1 = 0;             // Sets bits VCFG1 and VCFG0 in ADCON1 so the ADC voltage reference is VSS to VDD
@@ -150,32 +151,25 @@ void ADC_Init(void)
     ADCON0 = 0b00000001;    // Select channel 0 (AN0) to read the AN0 voltage and turn on ADC
 }
 
-void ADC_Convert(void)
+void ADC_Convert(void)                        // OLD BUT RELIVANT
 {
     ADCON0bits.GO_DONE = 1;             // start conversion
     while (ADCON0bits.GO_DONE == 1);    // wait for it to complete
     ADCvalue = ADRESL + (ADRESH * 256); // store 10bit result
 }
 
-void init_io(void)
+void init_io(void)                            // OLD BUT RELIVANT, UPDATE AS YOU GO
 {
     ANSEL  = 0;	                        	    // set i/o to digital
-    ANSELH = 0;                                 // set rest of i/o to digital
-    TRISD  = 0;                 		        // sets port D to output
-    LATD   = 0b00000000;                       	// turns off port D outputs so display is blank
-    TRISA = 0; 					            	//sets PORTA as all outputs for RGB LEDs
-    LATA = 0b11111111; 			        		//turns off PORTA outputs 
-    TRISAbits.TRISA0 = 1;		                // RA0 = input for pot ADC
-    TRISBbits.TRISB0 = 1;		                // RB0 = input for pulse sensor
-    TRISBbits.TRISB1 = 1;                       // RB1 = input for baseline button
-    TRISBbits.TRISB2 = 1;                       // RB2 = input for reading button
-    TRISCbits.TRISC3 = 0;                       // RC3 clock pulse verification
-    TRISCbits.TRISC2 = 0;                       // RC2 pulse detection verification
-    LATCbits.LATC3 = 0;                         // turn off RC3 initially
-    LATCbits.LATC2 = 0;                         // initial set to off
+    ANSELH = 0;                               // set rest of i/o to digital
+    TRISD  = 0;                 		          // sets port D to output for LCD & PWM
+    LATD   = 0b00000000;                      // turns off port D outputs so display is blank
+    TRISAbits.TRISA0 = 1;		                  // RA0 = input for ADC (might need changing)
+    TRISBbits.TRISB2 = 1;                     // RB2 = input for reading button (old, for reference)
+    TRISCbits.TRISC3 = 0;                     // RC3 clock pulse verification (old, for reference)
 }
 
-void init_interrupts(void)
+void init_interrupts(void)                      // OLD, FOR REFERENCE
 {
     RCONbits.IPEN = 1;                          // Enable priority levels on interrupts
     INTCONbits.GIEH = 1;                        // high priority interrupt enable
@@ -195,20 +189,20 @@ void init_interrupts(void)
                                                 // NOTE2: additional interrupts are initilized in timer function
 }
 
-void init_lcd(void)
+void init_lcd(void)                             // OLD, NEEDS CHANGING
 {
-    WriteCmd ( 0x02 );							// sets 4bit operation
+    WriteCmd ( 0x02 );							            // sets 4bit operation
     WriteCmd ( CLEAR_SCREEN );                  // clears the screen
-    WriteCmd ( FOUR_BIT & LINES_5X7 );			// sets 5x7 and multiline operation.
+    WriteCmd ( FOUR_BIT & LINES_5X7 );			    // sets 5x7 and multiline operation.
     programFlame();                             // write the custom flame characters to the LCD
-    WriteCmd ( CURSOR_BLINK );					// blinks cursor
-    WriteCmd ( CURSOR_RIGHT  );					// moves cursor right	
+    WriteCmd ( CURSOR_BLINK );					        // blinks cursor
+    WriteCmd ( CURSOR_RIGHT  );					        // moves cursor right	
     WriteString("Hello!");                      // test the lcd and show the program is running
     Delay1KTCYx(200);                           // wait a second
     WriteCmd ( CLEAR_SCREEN );                  // clears the screen
 }
 
-void reset_button_interrupts(void)
+void reset_button_interrupts(void)              // OLD, FOR REFERENCE
 {
     INTCON3bits.INT1IF = 0;                     // clears INT1 flag
     INTCON3bits.INT2IF = 0;                     // clears INT2 flag
@@ -224,11 +218,11 @@ void main(void)
 {
     init_io();                                  // init io 
     init_lcd();                                 // init lcd
-    Timer1_Init();                              // Run timer init function and starts the timer
     ADC_Init();                                 // init ADC
-    start:
+    start:                                      // return point to start again, saves having to init again.
     init_interrupts();                          // init interrupts 
     WriteCmd( CLEAR_SCREEN );
+
     goto start;
 } // main
 
