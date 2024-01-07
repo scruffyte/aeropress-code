@@ -40,29 +40,6 @@ DIS CODE MAKE COFFEE
 #pragma udata                       // declare statically allocated uinitialized variables
 #pragma idata                       // declare statically allocated initialized variables
 
-/** I N T E R R U P T S *********************************************/
-
-// OLD BUT HERE FOR REFERENCE
-//--- high priority interrupt vector ---//
-
-#pragma code InterruptVectorHigh = 0x08
-void InterruptVectorHigh (void)
-{
-  _asm
-    goto InterruptServiceHigh               //jump to interrupt routine
-  _endasm
-}
-
-//--- Low priority interrupt vector ---//
-
-#pragma code InterruptVectorLow = 0x18
-void InterruptVectorLow (void)
-{
-  _asm
-    goto InterruptServiceLow                //jump to interrupt routine
-  _endasm
-}
-
 /** F U N C T I O N S ***********************************************/
 
 //--- LCD ---//                      // OLD BUT RELIVANT - NEEDS UPDATING WITH NEW GRAPHICS
@@ -169,26 +146,6 @@ void init_io(void)                            // OLD BUT RELIVANT, UPDATE AS YOU
     TRISCbits.TRISC3 = 0;                     // RC3 clock pulse verification (old, for reference)
 }
 
-void init_interrupts(void)                      // OLD, FOR REFERENCE
-{
-    RCONbits.IPEN = 1;                          // Enable priority levels on interrupts
-    INTCONbits.GIEH = 1;                        // high priority interrupt enable
-    INTCONbits.GIEL = 1;                        // Low priority interrupt enable
-    INTCON2bits.INTEDG0 = 0;                    // interrupt on falling edge of INT0 (pulled high) (pulse sensor)
-    INTCON2bits.INTEDG1 = 0;                    // interrupt on rising edge of INT1 (pulled low) (baseline button)
-    INTCON2bits.INTEDG2 = 0;                    // interrupt on rising edge of INT2 (pulled low) (reading button)
-    INTCONbits.INT0IF = 0;                      // clears INT0 flag so it doesn't trigger immediately
-    INTCON3bits.INT1IF = 0;                     // clears INT1 flag
-    INTCON3bits.INT2IF = 0;                     // clears INT2 flag
-    INTCON3bits.INT1IP = 0;                     // INT1 low prioroty
-    INTCON3bits.INT2IP = 0;                     // INT2 low prioroty
-                                                // NOTE: INT0 is ALWAYS a high priority interrupt so no need to set
-    INTCONbits.INT0IE = 1;                      // enable INT0 external interrupt
-    INTCON3bits.INT1IE = 1;                     // enable INT1 external interrupt
-    INTCON3bits.INT2IE = 1;                     // enable INT2 external interrupt
-                                                // NOTE2: additional interrupts are initilized in timer function
-}
-
 void init_lcd(void)                             // OLD, NEEDS CHANGING
 {
     WriteCmd ( 0x02 );							            // sets 4bit operation
@@ -200,14 +157,6 @@ void init_lcd(void)                             // OLD, NEEDS CHANGING
     WriteString("Hello!");                      // test the lcd and show the program is running
     Delay1KTCYx(200);                           // wait a second
     WriteCmd ( CLEAR_SCREEN );                  // clears the screen
-}
-
-void reset_button_interrupts(void)              // OLD, FOR REFERENCE
-{
-    INTCON3bits.INT1IF = 0;                     // clears INT1 flag
-    INTCON3bits.INT2IF = 0;                     // clears INT2 flag
-    INTCON3bits.INT1IE = 1;                     // enable INT1 external interrupt
-    INTCON3bits.INT2IE = 1;                     // enable INT2 external interrupt
 }
 
 /** M A I N ********************************************************/
@@ -225,32 +174,3 @@ void main(void)
 
     goto start;
 } // main
-
-/** INTERRUPT SERVICE ROUTINES **************************************/
-
-#pragma interrupt InterruptServiceHigh           // "interrupt" pragma also for high priority
-void InterruptServiceHigh(void)
-{
-    // Check for INT0 interrupt
-    if (INTCONbits.INT0IF)
-    {
-        INTCONbits.INT0IF = 0;                   // clear (reset) flag
-
-    }
-
-    // check for TM1IF interrupt
-    if  (PIR1bits.TMR1IF)
-    {
-        PIR1bits.TMR1IF = 0;                     // clear (reset) flaG
-
-    }
-}
-
-void InterruptServiceLow(void)
-{
-    if(INTCON3bits.INT1IF)
-    {
-
-    }
-    
-}
