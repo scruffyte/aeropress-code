@@ -32,3 +32,36 @@ DIS CODE MAKE COFFEE
 
 #pragma udata                       // declare statically allocated uinitialized variables
 
+void initIO(void) {
+    ANSEL  = 0;	                        	    // set i/o to digital
+    ANSELH = 0;                                 // set rest of i/o to digital
+    TRISDbits.TRISD7 = 0;
+    TRISDbits.TRISD6 = 0;
+}
+
+void setDirection(int direction) {
+    DIR_PIN = direction;  // Set direction pin
+}
+
+void moveStepperMotor(int steps) {
+    for (int i = 0; i < steps; i++) {
+        STEP_PIN = 1;  // Set STEP pin high
+        Delay1KTCYx(1);  
+        STEP_PIN = 0;  // Set STEP pin low
+        Delay1KTCYx(1);  
+    }
+}
+
+void main(void) {
+    initIO();
+    setDirection(1);  // Set initial direction to clockwise
+    while (1) {
+        // Move stepper motor 200 steps in the clockwise direction
+        moveStepperMotor(200);  
+
+        // Move stepper motor 200 steps in the counterclockwise direction
+        setDirection(0);
+        moveStepperMotor(200);
+    }
+}
+
