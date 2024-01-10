@@ -1,8 +1,3 @@
-/** GROUP B AEROPRESS TEMPLATE (UPDATE ACCORDINGLY) ******************/
-
-BY TASMIN WHITTLE, BII TARTAGLIA, IZABELLA MICO & MAX JACOBY - 2023-24
-DIS CODE MAKE COFFEE
-
 /** C O N F I G U R A T I O N   B I T S ******************************/
 
 #pragma config FOSC = INTIO67, FCMEN = OFF, IESO = OFF                      // CONFIG1H
@@ -25,8 +20,8 @@ DIS CODE MAKE COFFEE
 
 /** D E F I N E S ****************************************************/
 
-#define DIR_PIN     PORTDbits.RD6
-#define STEP_PIN    PORTDbits.RD7
+#define DIR_PIN PORTDbits.RD6
+#define STEP_PIN PORTDbits.RD7
 
 /** V A R I A B L E S ***********************************************/
 
@@ -44,11 +39,12 @@ void setDirection(int direction) {
 }
 
 void moveStepperMotor(int steps) {
-    for (int i = 0; i < steps; i++) {
+    int i;
+    for (i = 0; i < steps; i++) {
         STEP_PIN = 1;  // Set STEP pin high
-        Delay1KTCYx(1);  
+        Delay1KTCYx(10);  
         STEP_PIN = 0;  // Set STEP pin low
-        Delay1KTCYx(1);  
+        Delay1KTCYx(10);  
     }
 }
 
