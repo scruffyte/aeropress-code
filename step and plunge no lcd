@@ -1,0 +1,127 @@
+/** C O N F I G U R A T I O N   B I T S ******************************/
+
+#pragma config FOSC = INTIO67, FCMEN = OFF, IESO = OFF                      // CONFIG1H
+#pragma config PWRT = OFF, BOREN = OFF, BORV = 30                           // CONFIG2L
+#pragma config WDTEN = OFF, WDTPS = 32768                                   // CONFIG2H
+#pragma config MCLRE = ON, LPT1OSC = OFF, PBADEN = ON, CCP2MX = PORTC       // CONFIG3H
+#pragma config STVREN = ON, LVP = OFF, XINST = OFF                          // CONFIG4L
+#pragma config CP0 = OFF, CP1 = OFF, CP2 = OFF, CP3 = OFF                   // CONFIG5L
+#pragma config CPB = OFF, CPD = OFF                                         // CONFIG5H
+#pragma config WRT0 = OFF, WRT1 = OFF, WRT2 = OFF, WRT3 = OFF               // CONFIG6L
+#pragma config WRTB = OFF, WRTC = OFF, WRTD = OFF                           // CONFIG6H
+#pragma config EBTR0 = OFF, EBTR1 = OFF, EBTR2 = OFF, EBTR3 = OFF           // CONFIG7L
+#pragma config EBTRB = OFF                                                  // CONFIG7H
+
+/** I N C L U D E S **************************************************/
+
+#include "p18f45k20.h"
+#include "header_V1-0.h"
+#include "delays.h"
+
+/** D E F I N E S ****************************************************/
+
+#define DIR_PIN PORTBbits.RB3
+#define STEP_PIN PORTBbits.RB4
+
+/** V A R I A B L E S ***********************************************/
+
+#pragma udata                       // declare statically allocated uinitialized variables
+
+int makingcoffee = 0;
+
+void initIO(void) {
+    ANSEL  = 0;	          // set i/o to digital
+    ANSELH = 0;           // set rest of i/o to digital
+    TRISBbits.TRISB3 = 0; //steper dir
+    TRISBbits.TRISB4 = 0; //stepper step
+    TRISAbits.TRISA3 = 1; //stepper vertical microswitch
+    TRISDbits.TRISD7 = 0; //plunge motor PWM out 1
+	TRISCbits.TRISC1 = 0; //plunge motor PWM out 2
+    TRISAbits.TRISA4 = 1; //plunge limit
+    TRISAbits.TRISA5 = 1; //unplunge limit
+    TRISDbits.TRISD0 = 1; //user confirm
+    //TURN OFF OUTPUTS 
+}
+
+void initPWM(void) {
+    T2CON = 0b00000111;
+    PR2 = 249;
+    CCP1CON = 0b01001100;
+    CCP2CON = 0b01001100;
+    CCPR1L = 0;
+    CCPR2L = 0;
+}
+
+void setDirection(int direction) {
+    DIR_PIN = direction;  // Set direction pin
+}
+
+void moveStepperMotor(int steps) {
+    int i;
+    for (i = 0; i < steps; i++) {
+        STEP_PIN = 1;  // Set STEP pin high
+        Delay10TCYx(10);  
+        STEP_PIN = 0;  // Set STEP pin low
+        Delay10TCYx(10);
+    }
+}
+void plungerev(void) {
+        while (PORTAbits.RA5 == 1) { // Check up limit
+            CCPR1L = 150;   // Set the duty cycle for unplunge (0-255)
+        }
+        CCPR1L = 0;      // Turn off motor when limit pressed
+        CCPR2L = 25;
+        Delay10KTCYx(10);
+        CCPR2L = 0;      // Turn off motor when limit pressed
+}
+
+void plungefwd(void) {
+        while (PORTAbits.RA4 == 1) {  // check down
+            CCPR2L = 25;   // Set the duty cycle for plunge (0-255)
+        }
+        CCPR2L = 0;      // Turn off motor when limit pressed
+}
+
+void home(void) {
+    if(PORTAbits.RA3 == 1) {
+        setDirection(1); //anticlockwise
+        while(PORTAbits.RA3 == 1) {
+            moveStepperMotor(1);
+        }
+    }
+    plungerev();
+}
+
+void unvert(void) {
+    if(PORTAbits.RA3 == 1) {
+        setDirection(1); //anticlockwise
+        while(PORTAbits.RA3 == 1) {
+            moveStepperMotor(1);
+        }
+    }
+}
+void invert(void) {
+    unvert();
+    if(PORTAbits.RA3 == 0) {
+        setDirection(0); //clockwise
+        moveStepperMotor(2600); //650 full step = 2600 1/4 microstep
+     }
+}
+void main(void) {
+    initIO();
+    initPWM();
+    home();
+    start:
+    while(PORTDbits.RD0 == 1) {
+    }
+    Delay10KTCYx(50);
+    makingcoffee = 1;
+    invert();
+    plungefwd();
+    Delay10KTCYx(100);
+    unvert();
+    Delay10KTCYx(5);
+    plungerev();
+    makingcoffee = 0;
+    goto start;
+}
