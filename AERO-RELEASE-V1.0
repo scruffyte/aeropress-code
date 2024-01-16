@@ -1,3 +1,10 @@
+/** GROUP B AEROPRESS X-PLUNGE CODE ******************
+
+BY TASMIN WHITTLE, BII TARTAGLIA, IZABELLA MICO & MAX JACOBY - 2023-24
+
+THIS CODE MAKES COFFEE IN A CONTRIVED WAY.
+
+*/
 /** C O N F I G U R A T I O N   B I T S ******************************/
 
 #pragma config FOSC = INTIO67, FCMEN = OFF, IESO = OFF                      // CONFIG1H
