@@ -678,18 +678,21 @@ void main(void) {
     WriteCmd( CLEAR_SCREEN );
     progMugAni();
     mugAni();
+    progCoffeeAni();
     while(PORTAbits.RA0 == 1) {
     }
-    progCoffeeAni();
     coffeeAni();
+    progFilterAni();
     while(PORTAbits.RA0 == 1) {
     }   
-    progFilterAni();
     filterAni();    
     progBrewingAni();
     brewingAni(4);
     WriteCmd( CLEAR_SCREEN );
     WriteString("brewing!");
+    Delay1KTCYx(200);
+    WriteString("steeping...");
+    Delay100KTCYx(35);
     makingcoffee = 1;
     invert();
     Delay1KTCYx(200);
@@ -700,6 +703,6 @@ void main(void) {
     plungerev();
     makingcoffee = 0;
     progFinishedAni();
-    finishedAni(10);
+    finishedAni(6);
     goto start;
 }
